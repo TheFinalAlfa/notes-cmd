@@ -47,7 +47,8 @@ def parse_arguments(parser, connection:sqlite3.Connection):
                 return
             details.append(rl_input("\nContent: \n", 
                                     prefill="" if arguments["content"] == None else " ".join(arguments["content"])))
-            print("Added note ID: " + str(add_note(details[0], "" if details[1] == "" else details[1], connection).fetchone()[0]))
+            print("Added note ID: " + str(add_note(details[0], "" if details[1] == "" else details[1], 
+                                                   connection).fetchone()[0]))
         else:
             print("Added note ID: " + str(add_note(" ".join(arguments["caption"]), "" 
                      if arguments["content"] == None else " ".join(arguments["content"]), 
