@@ -7,7 +7,8 @@ parser = argparse.ArgumentParser(description="Notes app")
 
 subparsers = parser.add_subparsers(dest="command")
 
-parser_new = subparsers.add_parser("new", help="Adds new note", description="""Adds new note to DB. If caption is empty, 
+parser_new = subparsers.add_parser("new", help="Adds new note", 
+                                   description="""Adds new note to DB. If caption is empty, 
                                    enters dynamic input.""")
 parser_new.add_argument("-d", "--dynamic", action="store_true", help="Enters dynamic input mode")
 parser_new.add_argument("caption", nargs="*", help="Text - displayed while showing all notes")
@@ -18,7 +19,8 @@ parser_show = subparsers.add_parser("show", help="Shows existing notes - all or 
                                     description="Shows all notes or Shows note with provided ID")
 parser_show.add_argument("id", type=int, nargs="?", help="Optional - displays note by ID")
 
-parser_modify = subparsers.add_parser("modify", help="Modifies existing note ID", description="Modifies existing note")
+parser_modify = subparsers.add_parser("modify", help="Modifies existing note ID", 
+                                      description="Modifies existing note")
 parser_modify.add_argument("id", type=int, help="Note's ID")
 
 
