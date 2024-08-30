@@ -1,7 +1,7 @@
 import sqlite3
 
 
-def add_note(caption:str, content:str, connection:sqlite3.Connection):
+def new_note(caption:str, content:str, connection:sqlite3.Connection):
     with connection:
         connection.execute(f"INSERT INTO notes (caption, content) VALUES (?, ?)", 
                            (caption, content))

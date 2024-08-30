@@ -64,7 +64,7 @@ def parse_new(arguments, connection:sqlite3.Connection):
     if arguments["dynamic"]:
         details["content"] = dynamic_input("Content: ")
     
-    print("Added note ID: " + str(add_note(details["caption"], details["content"], 
+    print("Added note ID: " + str(new_note(details["caption"], details["content"], 
                                            connection).fetchone()[0]))
 
 
