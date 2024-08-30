@@ -3,18 +3,20 @@ import sqlite3
 
 def add_note(caption:str, content:str, connection:sqlite3.Connection):
     with connection:
-        connection.execute(f"INSERT INTO notes (caption, content) VALUES ('{caption}', '{content}')")
+        connection.execute(f"INSERT INTO notes (caption, content) VALUES (?, ?)", 
+                           (caption, content))
         return connection.execute("SELECT last_insert_rowid()")
     
 
 def delete_note(id:int, connection:sqlite3.Connection):
     with connection:
-        connection.execute(f"DELETE FROM notes WHERE id =='{id}'")
+        connection.execute(f"DELETE FROM notes WHERE id == ?", (id,))
 
 
 def update_note(id:int, caption:str, content:str, connection:sqlite3.Connection):
     with connection:
-        connection.execute(f"""UPDATE notes SET caption = '{caption}', content = '{content}' WHERE id == {id}""")
+        connection.execute(f"UPDATE notes SET caption = ?, content = ? WHERE id == ?", 
+                           (caption, content, id) )
 
 
 def get_notes_simple(connection:sqlite3.Connection):
@@ -25,13 +27,13 @@ def get_notes_simple(connection:sqlite3.Connection):
 
 def get_note_by_id(id:int, connection:sqlite3.Connection):
     with connection:
-        results = connection.execute(f"SELECT id, caption, content FROM notes WHERE id == {id}")
+        results = connection.execute(f"SELECT id, caption, content FROM notes WHERE id == ?", (id,))
         return results.fetchone()
 
 
 def exists_id(id:int, connection:sqlite3.Connection):
     with connection:
-        return connection.execute(f"SELECT count(id) FROM notes WHERE id == {id}").fetchone()[0] == 1
+        return connection.execute(f"SELECT count(id) FROM notes WHERE id == ?", (id,)).fetchone()[0] == 1
 
 
 def set_up_db(db_name = "db.db") -> sqlite3.Connection:

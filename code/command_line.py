@@ -43,13 +43,13 @@ def dynamic_input(prompt, *prefill: list) -> str:
                 readline.set_startup_hook()
             result.append(input())
             if result[-1] == "":
-                return "\n".join(result)
+                return "\n".join(result[:-1])
             else:
                 i += 1
     finally:
         readline.set_startup_hook()
 
-def parse_new(arguments):
+def parse_new(arguments, connection:sqlite3.Connection):
     details = {
         "caption" : " ".join(arguments["caption"]),
         "content" : "", 
@@ -72,7 +72,7 @@ def parse_new(arguments):
                                            connection).fetchone()[0]))
 
 
-def parse_show(arguments):
+def parse_show(arguments, connection:sqlite3.Connection):
     if "id" in arguments.keys():
         if exists_id(arguments["id"], connection):
             a = get_note_by_id(arguments["id"], connection)
@@ -85,21 +85,19 @@ def parse_show(arguments):
             print(f" {str(iteam[0])} \t {iteam[1]}")
 
 
-def parse_modify(arguments):
+def parse_modify(arguments, connection:sqlite3.Connection):
     if not exists_id(arguments["id"], connection):
         print("ID not in database")
     else:
         print(f"Modifying note ID: {arguments['id']}")
         note = list(get_note_by_id(arguments["id"], connection))
         # [id, "caption", "content"]
-        print(note)
-        
-        note[1] = rl_input("New caption:\n", note[1])
-        note[2] = rl_input("New content: \n", note[2])
+        note[1] = dynamic_input("New caption:\n", note[1])
+        note[2] = dynamic_input("New content: \n", note[2].split("\n"))
         update_note(note[0], note[1], note[2], connection)
 
 
-def parse_del(arguments):
+def parse_del(arguments, connection:sqlite3.Connection):
     for i in arguments["id"]:
         delete_note(i, connection)
     print(f"Deleted notes with IDs: {str(arguments['id'])}")
@@ -109,10 +107,10 @@ def parse_arguments(parser, connection:sqlite3.Connection):
     arguments = vars(parser.parse_args())
     
     if arguments["command"] == "new":
-        parse_new(arguments)
+        parse_new(arguments, connection)
     elif arguments["command"] == "show" or arguments["command"] == None:
-        parse_show(arguments)
+        parse_show(arguments, connection)
     elif arguments["command"] == "modify":
-        parse_modify(arguments)
+        parse_modify(arguments, connection)
     elif arguments["command"] == "del":
-        parse_del(arguments)
+        parse_del(arguments, connection)
