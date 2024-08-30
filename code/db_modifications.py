@@ -38,9 +38,14 @@ def exists_id(id:int, connection:sqlite3.Connection):
 
 def set_up_db(db_name = "db.db") -> sqlite3.Connection:
     connection = sqlite3.connect(db_name)
+    connection.execute("PRAGMA foreign_keys = 1")
     with connection:
         cur = connection.execute("SELECT name FROM sqlite_master")
         all_tables = cur.fetchall()
         if ("notes",) not in all_tables:
-            connection.execute("CREATE TABLE notes(id INTEGER PRIMARY KEY, caption, content)")
+            cur.execute("CREATE TABLE notes(id INTEGER PRIMARY KEY, caption, content)")
+        if ("tags",) not in all_tables:
+            cur.execute("CREATE TABLE tags (id INTEGER PRIMARY KEY, name)")
+        if ("note_tags",) not in all_tables:
+            cur.execute("""CREATE TABLE note_tags (note_id INTEGER REFERENCES notes(id), tag_id REFERENCES tags(id))""")
         return connection

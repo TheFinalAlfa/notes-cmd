@@ -2,38 +2,32 @@ import argparse, readline
 from .db_modifications import *
 
 
-    
-parser = argparse.ArgumentParser(description="Notes app")
+def construct_parser_base(parser, subparsers_command):
+    parser_new = subparsers_command.add_parser("new", help="Adds new note", 
+                                       description="""Adds new note to DB. If caption is empty, 
+                                       enters dynamic input.""")
+    parser_new.add_argument("-d", "--dynamic", action="store_true", help="Enters dynamic input mode")
+    parser_new.add_argument("caption", nargs="*", help="Text - displayed while showing all notes")
+    parser_new.add_argument("--content", "-c", nargs="*", 
+                            help="Text - hidden while showing all notes. Use \"\\\\\" for new line")
 
-subparsers = parser.add_subparsers(dest="command")
+    parser_show = subparsers_command.add_parser("show", help="Shows existing notes - all or by ID", 
+                                        description="Shows all notes or Shows note with provided ID")
+    parser_show.add_argument("id", type=int, nargs="?", help="Optional - displays note by ID")
 
-parser_new = subparsers.add_parser("new", help="Adds new note", 
-                                   description="""Adds new note to DB. If caption is empty, 
-                                   enters dynamic input.""")
-parser_new.add_argument("-d", "--dynamic", action="store_true", help="Enters dynamic input mode")
-parser_new.add_argument("caption", nargs="*", help="Text - displayed while showing all notes")
-parser_new.add_argument("--content", "-c", nargs="*", 
-                        help="Text - hidden while showing all notes. Use \"\\\\\" for new line")
+    parser_modify = subparsers_command.add_parser("modify", help="Modifies existing note ID", 
+                                          description="Modifies existing note")
+    parser_modify.add_argument("id", type=int, help="Note's ID")
 
-parser_show = subparsers.add_parser("show", help="Shows existing notes - all or by ID", 
-                                    description="Shows all notes or Shows note with provided ID")
-parser_show.add_argument("id", type=int, nargs="?", help="Optional - displays note by ID")
-
-parser_modify = subparsers.add_parser("modify", help="Modifies existing note ID", 
-                                      description="Modifies existing note")
-parser_modify.add_argument("id", type=int, help="Note's ID")
-
-
-parser_delete = subparsers.add_parser("del", help="Deletes note by ID", 
-                                      description="Deletes existing note by ID, one or more, doesn't check if it exists")
-parser_delete.add_argument("id", type=int, help="One or more note IDs to delete", nargs="+")
+    parser_delete = subparsers_command.add_parser("del", help="Deletes note by ID", 
+                        description="Deletes existing note by ID, one or more, doesn't check if it exists")
+    parser_delete.add_argument("id", type=int, help="One or more note IDs to delete", nargs="+")
 
 
-def dynamic_input(prompt, *prefill: list) -> str:
+def dynamic_input(prompt, *prefill: list, max_rows=0) -> str:
     ## Args form: (prompt, prefill)
     result = []
     i = 0
-    print("Entered dynamic input mode: \nTo exit enter a blank row")
     print(prompt, end="")
     try:
         while True:
@@ -42,8 +36,10 @@ def dynamic_input(prompt, *prefill: list) -> str:
             else:
                 readline.set_startup_hook()
             result.append(input())
-            if result[-1] == "":
+            if result[-1] == "" :
                 return "\n".join(result[:-1])
+            if (i + 1 == max_rows and max_rows != 0):
+                return "\n".join(result)
             else:
                 i += 1
     finally:
@@ -56,8 +52,8 @@ def parse_new(arguments, connection:sqlite3.Connection):
         }
     
     if arguments["dynamic"]:
-        details["caption"] = dynamic_input(["Caption: ", details["caption"]])
-    elif details["caption"] == "":
+        details["caption"] = dynamic_input("Caption: ", details["caption"], max_rows=1)
+    if details["caption"] == "":
         print("Caption is required")
         return
     # Maybe add a check of details["caption"] value (ex. "\n", ", ', ;)
@@ -66,7 +62,7 @@ def parse_new(arguments, connection:sqlite3.Connection):
         details["content"] = " ".join(arguments["content"])
         details["content"].replace("\\\\", "\n")
     if arguments["dynamic"]:
-        details["content"] = dynamic_input()
+        details["content"] = dynamic_input("Content: ")
     
     print("Added note ID: " + str(add_note(details["caption"], details["content"], 
                                            connection).fetchone()[0]))
